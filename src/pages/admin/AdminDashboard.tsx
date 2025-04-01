@@ -46,6 +46,7 @@ const AdminDashboard = () => {
     role: '',
     active: true
   });
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   useEffect(() => {
     // Check if user is admin or superadmin
@@ -97,6 +98,7 @@ const AdminDashboard = () => {
       active: user.active
     });
     setSelectedUser(user);
+    setSheetOpen(true);
   };
 
   const handleUpdateUser = () => {
@@ -111,8 +113,8 @@ const AdminDashboard = () => {
       description: "The user information has been successfully updated.",
     });
 
-    // Close sheet via handling
-    document.querySelector('.sheet-close-button').click();
+    // Close sheet via state
+    setSheetOpen(false);
   };
 
   return (
@@ -251,7 +253,7 @@ const AdminDashboard = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
-                          <Sheet>
+                          <Sheet open={sheetOpen && selectedUser?.id === user.id} onOpenChange={setSheetOpen}>
                             <SheetTrigger asChild>
                               <Button 
                                 variant="outline" 
@@ -315,7 +317,7 @@ const AdminDashboard = () => {
                               </div>
                               <SheetFooter>
                                 <Button type="submit" onClick={handleUpdateUser}>Save changes</Button>
-                                <SheetClose className="sheet-close-button">
+                                <SheetClose asChild>
                                   <Button type="button" variant="outline">Cancel</Button>
                                 </SheetClose>
                               </SheetFooter>
