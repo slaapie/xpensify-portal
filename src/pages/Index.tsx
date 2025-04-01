@@ -1,24 +1,40 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
 import FeatureCard from '@/components/landing/FeatureCard';
-import { ArrowRight, PieChart, BarChart4, LineChart, Shield, CreditCard } from 'lucide-react';
+import { ArrowRight, PieChart, BarChart4, LineChart, Shield, CreditCard, UserCog } from 'lucide-react';
 
 const Index = () => {
+  const navigate = useNavigate();
+  
+  const handleAdminLogin = () => {
+    // Store the admin flag to redirect to admin dashboard after login
+    localStorage.setItem('loginRedirect', 'admin');
+    navigate('/login');
+  };
+  
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-primary-50 to-white">
         <nav className="container mx-auto px-6 py-4 flex items-center justify-between">
           <Logo />
-          <div className="space-x-2">
+          <div className="flex items-center space-x-2">
             <Button variant="ghost" asChild>
               <Link to="/login">Login</Link>
             </Button>
             <Button asChild>
               <Link to="/signup">Sign Up</Link>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-1" 
+              onClick={handleAdminLogin}
+            >
+              <UserCog className="h-4 w-4" />
+              Admin Login
             </Button>
           </div>
         </nav>

@@ -13,7 +13,6 @@ const Settings = () => {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [budgetAlerts, setBudgetAlerts] = useState(true);
   const [weeklyReports, setWeeklyReports] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -124,24 +123,6 @@ const Settings = () => {
                       id="weekly-reports"
                       checked={weeklyReports}
                       onCheckedChange={setWeeklyReports}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Display</h3>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="dark-mode">Dark Mode</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Use dark theme for the application
-                      </p>
-                    </div>
-                    <Switch
-                      id="dark-mode"
-                      checked={darkMode}
-                      onCheckedChange={setDarkMode}
                     />
                   </div>
                 </div>
