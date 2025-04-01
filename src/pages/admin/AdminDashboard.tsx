@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -13,16 +13,39 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { mockUserData } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
-import { BarChart, LineChart, PieChart } from 'lucide-react';
+import { BarChart, LineChart, PieChart, Edit, Trash, Check, AlertCircle, UserCog } from 'lucide-react';
 import ExpensePieChart from '@/components/dashboard/ExpensePieChart';
 import ExpenseBarChart from '@/components/dashboard/ExpenseBarChart';
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetDescription, 
+  SheetHeader, 
+  SheetTitle, 
+  SheetTrigger,
+  SheetFooter,
+  SheetClose
+} from '@/components/ui/sheet';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+// Import a copy of mockUserData so we can modify it
+import { mockUserData as initialMockUserData } from '@/data/mockData';
 
 const AdminDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const userRole = localStorage.getItem('userRole');
+  const [users, setUsers] = useState(initialMockUserData);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [editUser, setEditUser] = useState({
+    id: '',
+    name: '',
+    email: '',
+    role: '',
+    active: true
+  });
 
   useEffect(() => {
     // Check if user is admin or superadmin
@@ -40,6 +63,57 @@ const AdminDashboard = () => {
   if (userRole !== 'admin' && userRole !== 'superadmin') {
     return null;
   }
+
+  const handleStatusToggle = (userId) => {
+    setUsers(prevUsers => 
+      prevUsers.map(user => 
+        user.id === userId ? {...user, active: !user.active} : user
+      )
+    );
+    
+    toast({
+      title: "User status updated",
+      description: "The user's status has been successfully updated.",
+    });
+  };
+
+  const handleDeleteUser = (userId) => {
+    if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+      
+      toast({
+        title: "User deleted",
+        description: "The user has been successfully removed from the system.",
+      });
+    }
+  };
+
+  const handleEditClick = (user) => {
+    setEditUser({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      active: user.active
+    });
+    setSelectedUser(user);
+  };
+
+  const handleUpdateUser = () => {
+    setUsers(prevUsers => 
+      prevUsers.map(user => 
+        user.id === editUser.id ? {...editUser} : user
+      )
+    );
+    
+    toast({
+      title: "User updated",
+      description: "The user information has been successfully updated.",
+    });
+
+    // Close sheet via handling
+    document.querySelector('.sheet-close-button').click();
+  };
 
   return (
     <DashboardLayout>
@@ -67,8 +141,8 @@ const AdminDashboard = () => {
               </svg>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockUserData.length}</div>
-              <p className="text-xs text-muted-foreground">Active users</p>
+              <div className="text-2xl font-bold">{users.length}</div>
+              <p className="text-xs text-muted-foreground">Active users: {users.filter(u => u.active).length}</p>
             </CardContent>
           </Card>
           <Card>
@@ -109,7 +183,7 @@ const AdminDashboard = () => {
               </svg>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">7</div>
+              <div className="text-2xl font-bold">{users.filter(u => u.active).length}</div>
               <p className="text-xs text-muted-foreground">Active users today</p>
             </CardContent>
           </Card>
@@ -156,7 +230,7 @@ const AdminDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockUserData.map((user) => (
+                  {users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
@@ -177,10 +251,108 @@ const AdminDashboard = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
-                          <Button variant="outline" size="sm">Edit</Button>
-                          <Button variant="outline" size="sm" className={user.active ? 'text-red-500' : 'text-green-500'}>
-                            {user.active ? 'Disable' : 'Enable'}
+                          <Sheet>
+                            <SheetTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleEditClick(user)}
+                                className="flex items-center gap-1"
+                              >
+                                <Edit className="h-4 w-4" /> Edit
+                              </Button>
+                            </SheetTrigger>
+                            <SheetContent>
+                              <SheetHeader>
+                                <SheetTitle>Edit User</SheetTitle>
+                                <SheetDescription>
+                                  Make changes to user's information. Click save when you're done.
+                                </SheetDescription>
+                              </SheetHeader>
+                              <div className="grid gap-4 py-4">
+                                <div className="grid gap-2">
+                                  <Label htmlFor="name">Name</Label>
+                                  <Input 
+                                    id="name" 
+                                    value={editUser.name}
+                                    onChange={(e) => setEditUser({...editUser, name: e.target.value})}
+                                  />
+                                </div>
+                                <div className="grid gap-2">
+                                  <Label htmlFor="email">Email</Label>
+                                  <Input 
+                                    id="email" 
+                                    value={editUser.email}
+                                    onChange={(e) => setEditUser({...editUser, email: e.target.value})}
+                                  />
+                                </div>
+                                <div className="grid gap-2">
+                                  <Label htmlFor="role">Role</Label>
+                                  <select 
+                                    id="role"
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                                    value={editUser.role}
+                                    onChange={(e) => setEditUser({...editUser, role: e.target.value})}
+                                    disabled={userRole !== 'superadmin' && editUser.role === 'superadmin'}
+                                  >
+                                    <option value="user">User</option>
+                                    <option value="admin">Admin</option>
+                                    {userRole === 'superadmin' && (
+                                      <option value="superadmin">Super Admin</option>
+                                    )}
+                                  </select>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <input 
+                                    type="checkbox" 
+                                    id="active" 
+                                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                    checked={editUser.active}
+                                    onChange={(e) => setEditUser({...editUser, active: e.target.checked})}
+                                  />
+                                  <Label htmlFor="active">Active</Label>
+                                </div>
+                              </div>
+                              <SheetFooter>
+                                <Button type="submit" onClick={handleUpdateUser}>Save changes</Button>
+                                <SheetClose className="sheet-close-button">
+                                  <Button type="button" variant="outline">Cancel</Button>
+                                </SheetClose>
+                              </SheetFooter>
+                            </SheetContent>
+                          </Sheet>
+                          
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className={user.active ? 'text-red-500 hover:text-red-600' : 'text-green-500 hover:text-green-600'}
+                            onClick={() => handleStatusToggle(user.id)}
+                          >
+                            {user.active ? (
+                              <>
+                                <AlertCircle className="h-4 w-4 mr-1" /> 
+                                Disable
+                              </>
+                            ) : (
+                              <>
+                                <Check className="h-4 w-4 mr-1" /> 
+                                Enable
+                              </>
+                            )}
                           </Button>
+                          
+                          {/* Only super admins can delete users */}
+                          {userRole === 'superadmin' && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-red-500 hover:bg-red-100"
+                              onClick={() => handleDeleteUser(user.id)}
+                            >
+                              <Trash className="h-4 w-4 mr-1" />
+                              Delete
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
