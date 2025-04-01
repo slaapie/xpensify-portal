@@ -17,43 +17,60 @@ const Login = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Mock login for demonstration
+  // Allow login with any email and password
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    // Validate that email format is correct and password is not empty
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!emailRegex.test(email)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (!password) {
+      toast({
+        variant: "destructive",
+        title: "Password required",
+        description: "Please enter a password.",
+      });
+      setIsLoading(false);
+      return;
+    }
 
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
       
-      // Mock credentials for demo
-      if (email === 'user@example.com' && password === 'password') {
-        localStorage.setItem('userRole', 'user');
-        toast({
-          title: "Login successful",
-          description: "Welcome back to XpenseS!",
-        });
+      // Determine user role based on email domain or pattern
+      let userRole = 'user'; // Default role
+      
+      if (email.includes('admin')) {
+        userRole = 'admin';
+      } else if (email.includes('superadmin')) {
+        userRole = 'superadmin';
+      }
+      
+      localStorage.setItem('userRole', userRole);
+      localStorage.setItem('userEmail', email);
+      
+      toast({
+        title: "Login successful",
+        description: `Welcome to XpenseS${userRole !== 'user' ? ` ${userRole.charAt(0).toUpperCase() + userRole.slice(1)}` : ''}!`,
+      });
+      
+      // Redirect based on role
+      if (userRole === 'user') {
         navigate('/dashboard');
-      } else if (email === 'admin@example.com' && password === 'admin') {
-        localStorage.setItem('userRole', 'admin');
-        toast({
-          title: "Admin Login successful",
-          description: "Welcome back to XpenseS Admin!",
-        });
-        navigate('/admin/dashboard');
-      } else if (email === 'superadmin@example.com' && password === 'superadmin') {
-        localStorage.setItem('userRole', 'superadmin');
-        toast({
-          title: "Super Admin Login successful",
-          description: "Welcome back to XpenseS Super Admin!",
-        });
-        navigate('/admin/dashboard');
       } else {
-        toast({
-          variant: "destructive",
-          title: "Login failed",
-          description: "Invalid email or password. Please try again.",
-        });
+        navigate('/admin/dashboard');
       }
     }, 1000);
   };
