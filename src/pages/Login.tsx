@@ -23,6 +23,8 @@ const Login = () => {
     const loginRedirect = localStorage.getItem('loginRedirect');
     if (loginRedirect === 'admin') {
       setIsAdminLogin(true);
+      // Pre-fill with admin email to make it clearer
+      setEmail('admin@example.com');
       localStorage.removeItem('loginRedirect'); // Clean up
     }
   }, []);
@@ -77,9 +79,7 @@ const Login = () => {
       });
       
       // Redirect based on role or isAdminLogin flag
-      if (isAdminLogin) {
-        navigate('/admin/dashboard');
-      } else if (userRole === 'admin' || userRole === 'superadmin') {
+      if (isAdminLogin || userRole === 'admin' || userRole === 'superadmin') {
         navigate('/admin/dashboard');
       } else {
         navigate('/dashboard');
@@ -155,9 +155,17 @@ const Login = () => {
                 </Button>
 
                 {isAdminLogin && (
-                  <p className="text-xs text-center text-muted-foreground">
-                    Use an email containing "admin" for admin access or "superadmin" for superadmin access
-                  </p>
+                  <div className="text-xs text-center space-y-1 mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
+                    <p className="text-muted-foreground">
+                      <strong>Admin Access:</strong> Use any email containing "admin" 
+                    </p>
+                    <p className="text-muted-foreground">
+                      <strong>Superadmin Access:</strong> Use any email containing "superadmin"
+                    </p>
+                    <p className="text-muted-foreground">
+                      <strong>Example:</strong> admin@example.com with any password
+                    </p>
+                  </div>
                 )}
               </div>
             </form>

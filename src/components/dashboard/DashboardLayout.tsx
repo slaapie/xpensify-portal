@@ -24,6 +24,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const userRole = localStorage.getItem('userRole') || '';
+  const userEmail = localStorage.getItem('userEmail') || '';
 
   useEffect(() => {
     // Check if user is logged in
@@ -34,11 +35,24 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         description: "Please login to access this page.",
       });
       navigate('/login');
+      return;
+    }
+
+    // If we're in the admin dashboard, check admin permissions
+    if (window.location.pathname.startsWith('/admin') && 
+        userRole !== 'admin' && userRole !== 'superadmin') {
+      toast({
+        variant: "destructive",
+        title: "Access denied",
+        description: "You don't have permission to access the admin dashboard.",
+      });
+      navigate('/dashboard');
     }
   }, [userRole, navigate, toast]);
 
   const handleLogout = () => {
     localStorage.removeItem('userRole');
+    localStorage.removeItem('userEmail');
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",
@@ -105,6 +119,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             XpenseS Dashboard
           </h1>
           <div className="ml-auto flex items-center space-x-2">
+            {/* Show user information */}
+            <div className="text-sm text-gray-600 mr-2">
+              {userEmail} ({userRole})
+            </div>
             {/* Profile avatar placeholder - in a real app this would be dynamic */}
             <div className="h-10 w-10 rounded-full bg-primary-200 flex items-center justify-center text-primary-700 font-bold">
               {userRole === 'admin' ? 'A' : userRole === 'superadmin' ? 'S' : 'U'}
